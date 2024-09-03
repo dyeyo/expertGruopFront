@@ -1,0 +1,48 @@
+<form class="max-w-sm mx-auto" [formGroup]="formFilter">
+  <label
+    for="countries"
+    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+    >Seleccione una raza</label
+  >
+  <select
+    id="cats"
+    formControlName="filter"
+    (change)="getImgCatByBreeds()"
+    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+  >
+    <option selected value="">Selecicone raza</option>
+    <option *ngFor="let item of breeds" value="{{ item.id }}">
+      {{ item.name }}
+    </option>
+  </select>
+</form>
+<br>
+@if (cats) {
+<div id="default-carousel" class="relative" data-carousel="slide">
+  <div class="relative h-80 overflow-hidden rounded-lg ">
+    <div
+      *ngFor="let item of cats; let i = index"
+      [ngClass]="{ block: i === currentSlide, hidden: i !== currentSlide }"
+      class="duration-700 ease-in-out"
+    >
+      <img
+        [src]="item.url"
+        class="absolute block img"
+        [alt]="item.url"
+      />
+    </div>
+  </div>
+</div>
+<button
+  (click)="previousSlide()"
+  class="absolute top-1/2 -translate-y-1/2 left-0"
+>
+  ‹
+</button>
+<button (click)="nextSlide()" class="absolute top-1/2 -translate-y-1/2 right-0">
+  ›
+</button>
+<br>
+<app-card [cats]="cats"></app-card>
+
+}
