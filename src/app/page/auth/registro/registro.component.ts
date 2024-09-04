@@ -1,6 +1,6 @@
 import { IUser } from './../../../interfaces/user.interface';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { RouterLink,Router } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 
@@ -14,10 +14,16 @@ import { AuthService } from './../../../services/auth.service';
   styleUrl: './registro.component.scss',
 })
 export class RegistroComponent {
-  formBuilder = inject(FormBuilder);
-  authServices = inject(AuthService);
-  router = inject(Router);
+  // formBuilder = inject(FormBuilder);
+  // authServices = inject(AuthService);
+  // router = inject(Router);
   formRegister!: FormGroup;
+
+  constructor(
+    public router: Router,
+    public formBuilder: FormBuilder,
+    public authServices: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.createForm();
@@ -37,18 +43,24 @@ export class RegistroComponent {
     };
     this.authServices.register(payload).subscribe({
       next: (data: any) => {
-        localStorage.setItem('auth',data.token)
-        localStorage.setItem('user',JSON.stringify(data.user))
-        this.router.navigate(['/welcome'])
+        localStorage.setItem('auth', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        this.router.navigate(['/welcome']);
       },
-      error: (err) => {},
+      error: (err) => {
+        console.log(err);
+      },
+      complete: () => {
+        console.log('Completado');
+      },
     });
   }
 
   isFieldInvalid(field: string) {
     return (
       this.formRegister.get(field)?.invalid &&
-      (this.formRegister.get(field)?.dirty || this.formRegister.get(field)?.touched)
+      (this.formRegister.get(field)?.dirty ||
+        this.formRegister.get(field)?.touched)
     );
   }
 }

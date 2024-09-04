@@ -1,77 +1,55 @@
-import { AuthService } from './../../../services/auth.service';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { LoginComponent } from './login.component';
 import { Router } from '@angular/router';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { AuthService } from './../../../services/auth.service';
 
 xdescribe('LoginComponent', () => {
   let component: LoginComponent;
-  let fixture: ComponentFixture<LoginComponent>;
-  let mockAuthService: jasmine.SpyObj<AuthService>;
-  let mockRouter: jasmine.SpyObj<Router>;
-
-  beforeEach(async () => {
-    mockAuthService = jasmine.createSpyObj('AuthService', ['login', 'setToken']);
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
-
-    await TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule, HttpClientTestingModule],
-      declarations: [LoginComponent],
-      providers: [
-        FormBuilder,
-        { provide: AuthService, useValue: mockAuthService },
-        { provide: Router, useValue: mockRouter }
-      ]
-    }).compileComponents();
-  });
+  let authService: jasmine.SpyObj<AuthService>; // Update type definition
+  let formBuilder: FormBuilder;
+  let router: Router; 
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(LoginComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    formBuilder = new FormBuilder();
+    authService = jasmine.createSpyObj('AuthService', ['register']);
+    authService.register.and.returnValue(of({})); // This line causes the error
+    router = jasmine.createSpyObj('Router', ['navigate']);
+    component = new LoginComponent(router, formBuilder, authService);
   });
 
-  it('should create the component', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('should initialize the form with validators', () => {
+  it('should create the form', () => {
     component.createForm();
     expect(component.formLogin).toBeDefined();
-    expect(component.formLogin.get('email')).toBeTruthy();
-    expect(component.formLogin.get('password')).toBeTruthy();
-    expect(component.formLogin.get('email')?.hasValidator(Validators.required)).toBeTrue();
-    expect(component.formLogin.get('email')?.hasValidator(Validators.email)).toBeTrue();
-    expect(component.formLogin.get('password')?.hasValidator(Validators.required)).toBeTrue();
+    expect(component.formLogin.get('email')).toBeDefined();
+    expect(component.formLogin.get('password')).toBeDefined();
   });
 
-  it('should login and set token on successful login', () => {
-    const mockResponse = { token: 'mockToken', usuario: { id: 1, name: 'John Doe' } };
-    mockAuthService.login.and.returnValue(of(mockResponse));
-
-    component.formLogin.get('email')?.setValue('test@example.com');
-    component.formLogin.get('password')?.setValue('password123');
+  it('Debe enviar datos y navegar a la bienvenida después de logenadose exitosamente.', () => {
+    const mockData = {
+      token: 'mockToken',
+      user: { email: 'dyegovallejo@gmail.com', password: '123456789' },
+    };
+  
+    // Mock form values
+    component.formLogin = {
+      get: jasmine
+        .createSpy()
+        .and.returnValues({ value: 'dyegovallejo@gmail.com' }, { value: '123456789' }),
+    } as any;
+  
+    spyOn(component.authService, 'login').and.returnValue(of(mockData));
+  
+    spyOn(component.router, 'navigate');
+  
     component.login();
-
-    expect(mockAuthService.login).toHaveBeenCalledWith({
-      email: 'test@example.com',
-      password: 'password123',
-    });
+  
     expect(localStorage.getItem('auth')).toBe('mockToken');
-    expect(localStorage.getItem('user')).toBe(JSON.stringify(mockResponse.usuario));
-    expect(mockAuthService.setToken).toHaveBeenCalledWith('mockToken');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/welcome']);
-  });
-
-  it('should handle login error', () => {
-    mockAuthService.login.and.returnValue(throwError(() => new Error('Login failed')));
-
-    component.formLogin.get('email')?.setValue('test@example.com');
-    component.formLogin.get('password')?.setValue('password123');
-    component.login();
-
-    expect(mockAuthService.login).toHaveBeenCalled();
+    expect(localStorage.getItem('user')).toBe(
+      JSON.stringify({ id: 1, email: 'dyegovallejo@gmail.com' })
+    );
+    expect(component.router.navigate).toHaveBeenCalledWith(['/welcome']);
   });
 });

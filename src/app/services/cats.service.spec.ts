@@ -1,53 +1,68 @@
+
 import { TestBed } from '@angular/core/testing';
-import {
-  HttpClientTestingModule,
-  HttpTestingController,
-} from '@angular/common/http/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { CatsService } from './cats.service';
 import { environment } from './../../environments/environment';
 
-import { CatsService } from './cats.service';
-
-xdescribe('CatsService', () => {
+describe('CatsService', () => {
   let service: CatsService;
-  let httpMock: HttpTestingController;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [CatsService],
+      providers: [CatsService]
     });
     service = TestBed.inject(CatsService);
-    httpMock = TestBed.inject(HttpTestingController);
+    httpTestingController = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => {
-    httpMock.verify();
+    httpTestingController.verify();
   });
 
-  it('should get all breeds', () => {
-    const mockBreeds = { cats: [{ id: '1', name: 'Breed 1' }] };
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
 
-    service.getAllBreeds().subscribe((data: any) => {
-      expect(data).toEqual(mockBreeds);
+  it('Debería devolver razas cuando se llama a getAllBreeds', () => {
+    const mockBreeds = ['breed1', 'breed2'];
+
+    service.getAllBreeds().subscribe((breeds: any) => {
+      expect(breeds).toEqual(mockBreeds);
     });
 
-    const req = httpMock.expectOne(`${environment.url}breeds/`);
-    expect(req.request.method).toBe('GET');
-
+    const req = httpTestingController.expectOne(`${environment.url}breeds/`);
+    expect(req.request.method).toEqual('GET');
     req.flush(mockBreeds);
   });
 
-  it('should get breed data by id', () => {
-    const mockId = '1';
-    const mockBreedData = { breed: [{ id: '1', name: 'Breed 1' }] };
+  it('Debe devolver datos de una raza específica cuando se llama a getDataById', () => {
+    const mockBreedId = '123';
+    const mockBreedData = { id: '123', name: 'Breed Name' };
 
-    service.getDataById(mockId).subscribe((data: any) => {
+    service.getDataById(mockBreedId).subscribe((data: any) => {
       expect(data).toEqual(mockBreedData);
     });
 
-    const req = httpMock.expectOne(`${environment.url}breeds/${mockId}`);
-    expect(req.request.method).toBe('GET');
-
+    const req = httpTestingController.expectOne(`${environment.url}breeds/${mockBreedId}`);
+    expect(req.request.method).toEqual('GET');
     req.flush(mockBreedData);
+  });
+
+  it('Debería manejar errores cuando se llama a getAllBreeds', () => {
+    const errorMessage = 'Error fetching breeds';
+
+    service.getAllBreeds().subscribe(
+      () => fail('Expected to fail'),
+      (error: any) => {
+        expect(error).toBeTruthy();
+        expect(error.error).toBe(errorMessage);
+      }
+    );
+
+    const req = httpTestingController.expectOne(`${environment.url}breeds/`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(errorMessage, { status: 404, statusText: 'Not Found' });
   });
 });

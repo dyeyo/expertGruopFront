@@ -20,10 +20,16 @@ import { IUser } from './../../../interfaces/user.interface';
   styleUrl: './login.component.scss',
 })
 export class LoginComponent {
-  formBuilder = inject(FormBuilder);
-  authServices = inject(AuthService);
-  router = inject(Router);
+  // formBuilder = inject(FormBuilder);
+  // authService = inject(AuthService);
+  // router = inject(Router);
   formLogin!: FormGroup;
+
+  constructor(
+    public router: Router,
+    public formBuilder: FormBuilder,
+    public authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.createForm();
@@ -41,11 +47,11 @@ export class LoginComponent {
       email: this.formLogin.get('email')?.value,
       password: this.formLogin.get('password')?.value,
     };
-    this.authServices.login(payload).subscribe({
+    this.authService.login(payload).subscribe({
       next: (data: any) => {
         localStorage.setItem('auth', data.token);
         localStorage.setItem('user', JSON.stringify(data.usuario));
-        this.authServices.setToken(data.token);
+        this.authService.setToken(data.token);
         this.router.navigate(['/welcome']);
       },
       error: (err: any) => {},
