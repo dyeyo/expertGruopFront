@@ -45,13 +45,13 @@ describe('RegistroComponent', () => {
 
     component.ngOnInit();
     component.formRegister.setValue({
-      email: 'test@example.com',
+      email: 'test@gmail.com',
       password: '123456789',
     });
 
     const response = {
       token: 'jwttoken',
-      user: { id: 1, email: 'test@example.com' },
+      user: { id: 1, email: 'test@gmail.com' },
     };
 
     authServiceMock.register.and.returnValue(of(response));
